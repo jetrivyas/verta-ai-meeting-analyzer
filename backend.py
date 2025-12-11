@@ -62,11 +62,13 @@ def configure_gemini():
     
     genai.configure(api_key=api_key)
     
-    # Try different model names
+    # Try different model names (updated for current API)
     model_names = [
+        'gemini-1.5-flash-latest',
+        'gemini-1.5-pro-latest', 
+        'gemini-pro',
         'gemini-1.5-flash',
-        'gemini-1.5-pro',
-        'gemini-2.0-flash'
+        'gemini-1.5-pro'
     ]
     
     for model_name in model_names:
@@ -386,13 +388,23 @@ async def debug_info():
     """Debug endpoint to check configuration"""
     api_key = os.getenv("GEMINI_API_KEY")
     
+    # Try to list available models
+    available_models = []
+    if genai and api_key:
+        try:
+            genai.configure(api_key=api_key)
+            models = genai.list_models()
+            available_models = [m.name for m in models if 'generateContent' in m.supported_generation_methods][:5]
+        except Exception as e:
+            available_models = [f"Error listing models: {str(e)}"]
+    
     return {
         "api_key_present": bool(api_key),
         "api_key_length": len(api_key) if api_key else 0,
         "api_key_prefix": api_key[:10] + "..." if api_key else None,
         "model_initialized": bool(model),
         "genai_available": bool(genai),
-        "environment_vars": list(os.environ.keys()),
+        "available_models": available_models,
         "render_env": bool(os.getenv("RENDER"))
     }
 
