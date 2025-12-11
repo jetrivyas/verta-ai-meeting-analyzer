@@ -294,7 +294,21 @@ def analyze_file():
 
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        # Try different model names
+        model_names = ["models/gemini-2.5-flash", "models/gemini-1.5-flash", "models/gemini-pro"]
+        model = None
+        
+        for model_name in model_names:
+            try:
+                model = genai.GenerativeModel(model_name)
+                logger.info(f"Successfully initialized model: {model_name}")
+                break
+            except Exception as e:
+                logger.warning(f"Failed to initialize {model_name}: {e}")
+                continue
+        
+        if not model:
+            raise Exception("No available Gemini model found")
 
         # Upload content
         media = genai.upload_file(temp_path)
