@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Check backend health first
             const apiBase = window.location.hostname === 'localhost' ? 
                 'http://localhost:8000' : 
-                'https://verta-api.onrender.com';  // Replace with your Render URL
+                'https://verta-ai.onrender.com';
             const healthResponse = await fetch(`${apiBase}/health`, {
                 method: 'GET',
                 mode: 'cors'
