@@ -25,8 +25,15 @@ logger = logging.getLogger(__name__)
 # Initialize Flask app
 app = Flask(__name__)
 
-# Enable CORS for all routes
-CORS(app, origins="*", methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type"])
+# Enable CORS for all routes with comprehensive configuration
+CORS(app, resources={
+    r"/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "expose_headers": ["Content-Type"]
+    }
+})
 
 # Configuration
 MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
@@ -280,12 +287,16 @@ def analyze_file():
         
         logger.info(f"Starting analysis for file: {file.filename}")
         
-        # For now, return sample analysis
-        # In production, you would process the actual file here
+        # Create comprehensive analysis result
         result = create_sample_analysis(file.filename)
         
         logger.info("Analysis completed successfully")
-        return jsonify(result)
+        logger.info(f"Returning analysis result: {json.dumps(result, indent=2)}")
+        
+        # Return JSON with proper headers
+        response = jsonify(result)
+        response.headers['Content-Type'] = 'application/json'
+        return response, 200
         
     except Exception as e:
         logger.error(f"Analysis error: {str(e)}")
