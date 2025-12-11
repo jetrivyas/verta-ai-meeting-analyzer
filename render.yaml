@@ -3,8 +3,8 @@ services:
     name: verta-api
     env: python
     plan: free
-    buildCommand: pip install -r requirements_flask.txt
-    startCommand: gunicorn app:app
+    buildCommand: pip install -r requirements_render.txt
+    startCommand: python backend.py
     envVars:
       - key: GEMINI_API_KEY
         sync: false  # Set this manually in Render dashboard
