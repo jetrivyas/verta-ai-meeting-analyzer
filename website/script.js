@@ -173,13 +173,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const apiBase = window.location.hostname === 'localhost' ? 
                 'http://localhost:8000' : 
                 'https://verta-ai.onrender.com';
+            
+            console.log('Connecting to backend:', apiBase);
+            
             const healthResponse = await fetch(`${apiBase}/health`, {
                 method: 'GET',
-                mode: 'cors'
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             });
             
+            console.log('Health response status:', healthResponse.status);
+            
             if (!healthResponse.ok) {
-                throw new Error('Backend not available');
+                throw new Error(`Backend not available: ${healthResponse.status} ${healthResponse.statusText}`);
             }
             
             const healthData = await healthResponse.json();
@@ -192,11 +200,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData();
             formData.append('file', file);
             
+            console.log('Sending file to analyze endpoint:', `${apiBase}/analyze`);
+            
             const uploadResponse = await fetch(`${apiBase}/analyze`, {
                 method: 'POST',
                 mode: 'cors',
                 body: formData
             });
+            
+            console.log('Analyze response status:', uploadResponse.status);
             
             if (!uploadResponse.ok) {
                 const errorData = await uploadResponse.json();
