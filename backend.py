@@ -366,6 +366,35 @@ async def test_endpoint():
     """Simple test endpoint"""
     return {"message": "Backend is working!", "timestamp": datetime.now().isoformat()}
 
+@app.get("/test-ai")
+async def test_ai():
+    """Test Gemini AI directly"""
+    try:
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            return {"error": "No API key found"}
+        
+        if not genai:
+            return {"error": "genai module not available"}
+        
+        genai.configure(api_key=api_key)
+        
+        # Test with simple text generation
+        model = genai.GenerativeModel('models/gemini-2.5-flash')
+        response = model.generate_content("Say hello in JSON format: {\"message\": \"hello\"}")
+        
+        return {
+            "success": True,
+            "response": response.text,
+            "model": "gemini-2.5-flash"
+        }
+        
+    except Exception as e:
+        return {
+            "error": str(e),
+            "type": type(e).__name__
+        }
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
@@ -503,22 +532,35 @@ async def analyze_file(request: Request, file: UploadFile = File(None)):
         
         logger.info(f"Starting analysis of file: {file.filename}")
         
-        # Try real AI analysis if model is available
-        if model:
+        # Debug: Check if we have API key and model
+        api_key = os.getenv("GEMINI_API_KEY")
+        logger.info(f"API key present: {bool(api_key)}")
+        logger.info(f"Model initialized: {bool(model)}")
+        
+        # Try simple AI test first
+        if api_key and genai:
             try:
-                logger.info("Model is available, attempting real AI analysis...")
-                result = await analyze_with_gemini(model, file_content, file.filename)
+                logger.info("Testing simple AI generation...")
+                genai.configure(api_key=api_key)
+                test_model = genai.GenerativeModel('models/gemini-2.5-flash')
+                test_response = test_model.generate_content("Say 'AI is working' in JSON format")
+                logger.info(f"Simple AI test result: {test_response.text}")
+                
+                # If simple test works, try with file
+                logger.info("Simple AI test passed, attempting file analysis...")
+                result = await analyze_with_gemini(test_model, file_content, file.filename)
                 if result:
                     logger.info("Real AI analysis completed successfully")
                     result["analysis_type"] = "🔮 Real Gemini AI Analysis"
                     result["ai_model_used"] = "Gemini 2.5 Flash"
                     return result
                 else:
-                    logger.warning("AI analysis returned None, falling back to sample")
+                    logger.warning("File AI analysis returned None")
+                    
             except Exception as e:
-                logger.error(f"AI analysis failed: {e}")
+                logger.error(f"AI test/analysis failed: {e}")
         else:
-            logger.warning("Model not available - no Gemini API key or initialization failed")
+            logger.warning(f"Missing requirements - API key: {bool(api_key)}, genai: {bool(genai)}")
         
         # Fallback to sample analysis
         logger.info("Using sample analysis (AI not available)")
