@@ -1,2 +1,6 @@
-# VERTA Vercel Deployment Requirements - Minimal
-# No external dependencies needed for basic functionality
+# VERTA Backend Requirements
+Flask>=2.3.0
+Flask-CORS>=4.0.0
+google-generativeai>=0.3.0
+python-dotenv>=1.0.0
+gunicorn>=21.2.0

@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Check backend health first
             const apiBase = window.location.hostname === 'localhost' ? 
-                'http://localhost:8000' : 
+                'http://localhost:5000' : 
                 'https://verta-ai.onrender.com';
             
             console.log('Connecting to backend:', apiBase);
@@ -220,22 +220,20 @@ document.addEventListener('DOMContentLoaded', function() {
             
             updateProgress(45, 'File uploaded successfully...');
             
-            // Start AI analysis
-            updateProgress(55, 'Starting Gemini AI analysis...');
+            // The analyze endpoint returns the analysis directly
+            updateProgress(55, 'Processing AI analysis...');
             
-            // For Vercel deployment, we get analysis directly from upload
-            const analysisResult = uploadResponse.ok ? await uploadResponse.json() : null;
-            
-            if (!analysisResult) {
-                throw new Error('Analysis failed');
-            }
-            
-            updateProgress(85, 'AI analysis in progress...');
+            const analysisResult = await uploadResponse.json();
             console.log('Analysis result:', analysisResult);
             
+            if (!analysisResult) {
+                throw new Error('Analysis failed - no result returned');
+            }
+            
+            updateProgress(85, 'AI analysis complete...');
             updateProgress(95, 'Processing results...');
             
-            // Simulate final processing
+            // Simulate final processing for better UX
             setTimeout(() => {
                 updateProgress(100, 'Analysis complete!');
                 setTimeout(() => {
@@ -250,6 +248,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 progressSection.classList.add('hidden');
             }
             
+            // Reset analyze button
+            if (analyzeBtn) {
+                analyzeBtn.classList.remove('hidden');
+            }
+            
             // Show specific error handling
             if (error.message.includes('Backend not available') || error.message.includes('fetch')) {
                 showBackendUnavailable();
@@ -257,11 +260,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 showNotification('File too large. Please use a file under 100MB.', 'error');
             } else if (error.message.includes('File type not supported')) {
                 showNotification('File type not supported. Please use MP3, WAV, MP4, MOV, AVI, or WebM.', 'error');
-            } else if (error.message.includes('AI model not available')) {
-                showAIModelUnavailable();
+            } else if (error.message.includes('Method not allowed') || error.message.includes('405')) {
+                showNotification('Backend configuration error. Please check server logs.', 'error');
             } else {
                 showNotification(`Analysis failed: ${error.message}`, 'error');
-                // Fallback to demo after error
+                console.log('Falling back to demo results...');
                 setTimeout(() => {
                     generateDemoResults();
                 }, 2000);

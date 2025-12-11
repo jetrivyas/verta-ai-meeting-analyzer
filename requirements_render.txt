@@ -1,6 +1,6 @@
-# VERTA FastAPI Backend Requirements for Render
-fastapi>=0.104.0
-uvicorn[standard]>=0.24.0
-python-multipart>=0.0.6
+# VERTA Backend Requirements for Render
+Flask>=2.3.0
+Flask-CORS>=4.0.0
 google-generativeai>=0.3.0
 python-dotenv>=1.0.0
+gunicorn>=21.2.0
